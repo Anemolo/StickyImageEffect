@@ -31,6 +31,8 @@ class Slides {
     for (let i = 0; i < this.slides.length; i++) {
       if (activeIndex === i) {
         this.slides[i].firstChild.style.color = "#f9f9f9";
+        this.slides[i].classList.remove("next");
+        this.slides[i].classList.remove("prev");
       } else {
         this.slides[i].firstChild.style.color = "transparent";
         if (activeIndex > i) {

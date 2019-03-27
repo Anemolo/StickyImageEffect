@@ -1,0 +1,29 @@
+{
+  "name": "ultranoir-deconstruction",
+  "version": "1.0.0",
+  "description": "A deconstruction of ultranoir's WebGL project showcase",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build ./js/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crnacura/CodropsTemplate.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/crnacura/CodropsTemplate/issues"
+  },
+  "homepage": "https://github.com/crnacura/CodropsTemplate#readme",
+  "devDependencies": {
+    "@babel/core": "^7.4.0",
+    "parcel-bundler": "^1.12.3"
+  },
+  "dependencies": {
+    "popmotion": "^8.6.4",
+    "stats.js": "^0.17.0",
+    "three": "^0.101.1"
+  }
+}

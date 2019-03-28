@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { fragment, vertex } from "./shaders";
-// import { request } from "http";
+
 function GLManager(data) {
   const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
   camera.position.z = 5;
@@ -13,12 +13,10 @@ function GLManager(data) {
   renderer.setPixelRatio(window.devicePixelRatio);
 
   this.render = this.render.bind(this);
-  // this.onTextureLoad = this.onTextureLoad.bind(this);
-  // this.texture = new THREE.TextureLoader().load(test, this.onTextureLoad);
   this.textures = data.map((entry, i) =>
     new THREE.TextureLoader().load(
       entry.image,
-      this.onTextureLoad.bind(this, i)
+      this.calculateAspectRatioFactor.bind(this, i)
     )
   );
   this.factors = data.map(d => new THREE.Vector2(1, 1));
@@ -44,9 +42,10 @@ GLManager.prototype.getPlaneSize = function() {
   const viewSize = this.getViewSize();
   return { width: viewSize * 1.5, height: viewSize };
 };
-GLManager.prototype.onTextureLoad = function(index, texture) {
+GLManager.prototype.calculateAspectRatioFactor = function(index, texture) {
   const plane = this.getPlaneSize();
-  const rectRatio = plane.width / plane.height;
+  const windowRatio = window.innerWidth / window.innerHeight;
+  const rectRatio = (plane.width / plane.height) * windowRatio;
   const imageRatio = texture.image.width / texture.image.height;
 
   let factorX = 1;
@@ -64,13 +63,16 @@ GLManager.prototype.onTextureLoad = function(index, texture) {
     this.meshes[0].material.uniforms.u_textureFactor.value = this.factors[
       index
     ];
+    this.meshes[0].material.uniforms.u_textureFactor.needsUpdate = true;
   }
   if (this.nextIndex === index) {
     this.meshes[0].material.uniforms.u_texture2Factor.value = this.factors[
       index
     ];
+    this.meshes[0].material.uniforms.u_texture2Factor.needsUpdate = true;
   }
   if (this.initialRender) {
+    console.log("rendering");
     this.render();
   }
 };
@@ -175,8 +177,12 @@ GLManager.prototype.unmount = function() {
 };
 GLManager.prototype.onResize = function() {
   this.renderer.setSize(window.innerWidth, window.innerHeight);
-  // this.camera.aspect = window.inenrWidth / window.innerHeight;
-  // this.camera.updateProjectionMatrix();
+  for (var i = 0; i < this.textures.length; i++) {
+    if (this.textures[i].image) {
+      this.calculateAspectRatioFactor(i, this.textures[i]);
+    }
+  }
+
   this.render();
 };
 GLManager.prototype.scheduleLoop = function() {
@@ -188,6 +194,7 @@ GLManager.prototype.loop = function() {
   this.render();
   this.time += 0.1;
   this.meshes[0].material.uniforms.u_time.value = this.time;
+
   this.loopRaf = requestAnimationFrame(this.loop);
 };
 

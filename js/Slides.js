@@ -16,6 +16,7 @@ class Slides {
       if (index === 0) {
         title.style.color = "#f9f9f9";
       } else {
+        this.slides[i].firstChild.style.color = "transparent";
         slide.classList.add("next");
       }
       title.innerHTML = entry.title;

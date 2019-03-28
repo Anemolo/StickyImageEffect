@@ -48,8 +48,13 @@
   letter-spacing: 0.1rem;
   font-family: sans-serif;
   margin: 0;
-  user-select: none;
   transition: color 250ms ease-in-out;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently */
 }
 .prev {
   transition: all 250ms ease-out;

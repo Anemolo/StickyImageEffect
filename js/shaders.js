@@ -35,21 +35,21 @@ void main(){
 
     vec2 uv = vUv;
 
-    uv.x -= sin(uv.y) * ratio / 100. * (vel.x + vel.y) / 7.;
-    uv.y -= sin(uv.x) * ratio / 100. * (vel.x + vel.y) / 7.;
+    uv.x -= sin(uv.y) * ratio / 100. * (vel.x + vel.y) / 10.;
+    uv.y -= sin(uv.x) * ratio / 100. * (vel.x + vel.y) / 10.;
 
     tex1.r = texture2D(u_texture, centeredAspectRatio(uv, u_textureFactor )).r;
     tex2.r = texture2D(u_texture2, centeredAspectRatio(uv, u_textureFactor )).r;
 
     
-    uv.x -= sin(uv.y) * ratio / 150. * (vel.x + vel.y) / 7.;
-    uv.y -= sin(uv.x) * ratio / 150. * (vel.x + vel.y) / 7.;
+    uv.x -= sin(uv.y) * ratio / 150. * (vel.x + vel.y) / 10.;
+    uv.y -= sin(uv.x) * ratio / 150. * (vel.x + vel.y) / 10.;
 
     tex1.g = texture2D(u_texture, centeredAspectRatio(uv, u_textureFactor )).g;
     tex2.g = texture2D(u_texture2, centeredAspectRatio(uv, u_textureFactor )).g;
     
-    uv.x -= sin(uv.y) * ratio / 300. * (vel.x + vel.y) / 7.;
-    uv.y -= sin(uv.x) * ratio / 300. * (vel.x + vel.y) / 7.;
+    uv.x -= sin(uv.y) * ratio / 300. * (vel.x + vel.y) / 10.;
+    uv.y -= sin(uv.x) * ratio / 300. * (vel.x + vel.y) / 10.;
 
     tex1.b = texture2D(u_texture, centeredAspectRatio(uv, u_textureFactor )).b;
     tex2.b = texture2D(u_texture2, centeredAspectRatio(uv, u_textureFactor )).b;
@@ -72,6 +72,7 @@ void main(){
 `;
 
 const vertex = `
+#define PI 3.14159265359
 uniform float u_viewSize;
 uniform float u_progress;
 uniform float u_direction;
@@ -85,7 +86,7 @@ void main(){
     float zChange = 0.;
 
     float distance = length(position.xy );
-    float sizeDist = length(vec2(u_viewSize)) /2.;
+    float sizeDist = length(vec2((u_viewSize * 1.5) / 1.6, u_viewSize / 1.6));
     float normalized = distance/sizeDist;
 
     float stickyness = 0.5;
@@ -101,39 +102,31 @@ void main(){
     dir = u_direction;
     effect = u_effect;
 
-    float eff = clamp(effect-0.5,0.,1.);
-    float eff2 = clamp(-effect+0.5,0.,1.);
 
 
     // The mix cancel out at 0.5
     // When effect hits 1. the effects cancel out.
     float inMix = mix(inside,outside, clamp(effect-0.5,0.,1.) );
     // Not sure out works because it hits 0, maning it does not calcel out
-    float outMix = mix(outside,inside,  clamp(effect-0.5,0.,1.) );
+    // 
+    // goes from 1 to 0;
+    // on 0 it should nullify
+    // This works because inside and outside are swapped
+    float outMix = mix(inside,outside,  clamp(effect+0.5,0.,1.) );
+    
+    float outEffect = sin((1.-effect) * PI - PI/2.) *0.5 + 0.5;
+    float inEffect = sin(effect * PI - PI/2.) *0.5 + 0.5;
+
+
     zChange = mix(inMix,outMix, dir);
-    // zChange = inMix;
-
-    // zChange = mix(inside,outside, u_progress-0.5 );
-    // zChange = -1.+normalized ;
-    // zChange += -normalized ;
-
-    // pos.z +=  distance;
-    // pos.z -=  1.- distance;
-    // pos.z =  pos.z - (u_viewSize - distance) ;
-    // pos.z += 1.- distance;
 
 
-    // Alright, the in animation looks great.
-    // But the out animation is lacking because it doesn't really seems like
-    // its getting close from the center
-    // That happens because when going out, the progress is closing to 0
-    // And makes the effect go away when getting closer to the screen
-    // The idea would be to separate the progress of the effect and the progress
-    // of the z-movement. And make the effect last a bit longer
+    float eff = mix(u_progress, 1.-u_progress, dir);
 
+    pos.z += (-(sin(zChange * PI - PI/2.))) * 4. - u_progress * 8.;
 
-    pos.z += zChange * pp *  9.;
-
+    // out. eff = 0, pro = 0; dir = 1;
+    // in. eff = 1, pro= 1, dir  = 0;
     
     pos.z += sin(distance * 2. - u_time * 2.)  * u_waveIntensity;
 

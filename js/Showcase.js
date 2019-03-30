@@ -1,20 +1,36 @@
-import { GLManager } from "./GLManager";
-import { spring, parallel } from "popmotion";
-import { Grab } from "./Grab";
-import { Slides } from "./Slides";
-import { reach } from "./reach";
+import {
+  GLManager
+} from "./GLManager";
+import {
+  spring,
+  parallel
+} from "popmotion";
+import {
+  Grab
+} from "./Grab";
+import {
+  reach
+} from "./reach";
 // import { create } from "domain";
 
-function Showcase(data) {
+// onFullscreenStart
+// onFullscreenFinish
+// onZoomOutStart
+// onZoomOutFinish
+// onAciveIndexChange
+// onIndexChange
+function Showcase(data, options = {}) {
   this.GL = new GLManager(data);
   this.GL.createPlane();
 
   this.data = data;
 
   this.progress = 0;
-  this.direction = 0.5;
+  this.direction = 1;
   this.effect = 0;
   this.waveIntensity = 0;
+
+  this.options = options;
 
   this.index = {
     target: 0,
@@ -33,7 +49,7 @@ function Showcase(data) {
 
   this.slidesSpring = null;
 
-  this.slides = new Slides(data);
+  // this.slides = new Slides(data);
 
   this.grab = new Grab({
     onGrabStart: this.onGrabStart.bind(this),
@@ -42,19 +58,20 @@ function Showcase(data) {
   });
 }
 
-Showcase.prototype.mount = function(container) {
+Showcase.prototype.mount = function (container) {
   this.GL.mount(container);
-  this.slides.mount(container);
+  // this.slides.mount(container);
   // container.appendChild(this.slidesContainer);
 };
-Showcase.prototype.render = function() {
+Showcase.prototype.render = function () {
   this.GL.render();
 };
+
 function clamp(num, min, max) {
   return Math.max(min, Math.min(num, max));
 }
 
-Showcase.prototype.onMouseMove = function(ev) {
+Showcase.prototype.onMouseMove = function (ev) {
   if (this.followerSpring) {
     this.followerSpring.stop();
     this.followerSpring = null;
@@ -63,9 +80,18 @@ Showcase.prototype.onMouseMove = function(ev) {
   }
 
   this.followerSpring = reach({
-    from: { x: this.follower.x, y: this.follower.y },
-    to: { x: ev.clientX, y: ev.clientY },
-    velocity: { x: this.follower.vx, y: this.follower.vy },
+    from: {
+      x: this.follower.x,
+      y: this.follower.y
+    },
+    to: {
+      x: ev.clientX,
+      y: ev.clientY
+    },
+    velocity: {
+      x: this.follower.vx,
+      y: this.follower.vy
+    },
     stiffness: 500,
     damping: 50,
     mass: 1
@@ -75,7 +101,10 @@ Showcase.prototype.onMouseMove = function(ev) {
         x: position.x - this.follower.x,
         y: position.y - this.follower.y
       };
-      this.GL.updateRgbEffect({ position, velocity });
+      this.GL.updateRgbEffect({
+        position,
+        velocity
+      });
       // ball.style.background = "blue";
       // const transform = `
       // translate(calc(-50% + ${position.x.toFixed(
@@ -93,7 +122,10 @@ Showcase.prototype.onMouseMove = function(ev) {
     complete: () => {
       this.GL.updateRgbEffect({
         position: this.follower,
-        velocity: { x: 0, y: 0 }
+        velocity: {
+          x: 0,
+          y: 0
+        }
       });
       this.follower.vx = 0;
       this.follower.vy = 0;
@@ -101,7 +133,8 @@ Showcase.prototype.onMouseMove = function(ev) {
   });
   // this.GL.updateRgbEffect({ position, velocity });
 };
-Showcase.prototype.onGrabMove = function(scroll) {
+
+Showcase.prototype.onGrabMove = function (scroll) {
   this.index.target = clamp(
     this.index.initial + scroll.delta / this.index.scrollSize,
     -this.data.length + 0.51,
@@ -112,7 +145,10 @@ Showcase.prototype.onGrabMove = function(scroll) {
 
   if (this.index.active !== index) {
     this.index.active = index;
-    this.slides.onActiveIndexChange(this.index.active);
+    if (this.options.onActiveIndexChange) {
+      this.options.onActiveIndexChange(this.index.active);
+    }
+    // this.slides.onActiveIndexChange(this.index.active);
 
     this.GL.updateTexture(index);
     if (this.textureProgressSpring) {
@@ -138,13 +174,21 @@ Showcase.prototype.onGrabMove = function(scroll) {
     stiffness: 400,
     damping: 15,
     mass: 0.25
-  }).start(val => {
-    this.slides.onMove(val);
-    this.index.current = val;
+  }).start(index => {
+    // this.slides.onMove(index);
+    if (this.options.onIndexChange) {
+      this.options.onIndexChange(index);
+    }
+    this.index.current = index;
   });
 };
-Showcase.prototype.onGrabStart = function() {
-  this.slides.appear();
+Showcase.prototype.onGrabStart = function () {
+  if (this.options.onZoomOutStart) {
+    this.options.onZoomOutStart({
+      activeIndex: this.index.active
+    });
+  }
+  // this.slides.appear();
   this.index.initial = this.index.current;
 
   if (this.GLStickPop) {
@@ -157,7 +201,7 @@ Showcase.prototype.onGrabStart = function() {
     to: 0,
     speed: 1,
     mass: 0.25,
-    stiffness: 800,
+    stiffness: 200,
     damping: 200
   });
   const progressSpring = spring({
@@ -170,9 +214,9 @@ Showcase.prototype.onGrabStart = function() {
   const effectSpring = spring({
     from: this.effect,
     to: 1,
-    mass: 2,
+    mass: 3,
     stiffness: 100,
-    damping: 10
+    damping: 8
   });
 
   const waveIntensitySpring = spring({
@@ -184,21 +228,30 @@ Showcase.prototype.onGrabStart = function() {
     directionSpring,
     effectSpring,
     waveIntensitySpring
-  ).start(values => {
-    this.progress = values[0];
-    this.direction = values[1];
-    this.effect = values[2];
-    this.waveIntensity = values[3];
+  ).start({
+    update: values => {
+      this.progress = values[0];
+      this.direction = values[1];
+      this.effect = values[2];
+      this.waveIntensity = values[3];
 
-    this.GL.updateStickEffect({
-      progress: this.progress,
-      direction: this.direction,
-      effect: this.effect,
-      waveIntensity: this.waveIntensity
-    });
+      this.GL.updateStickEffect({
+        progress: this.progress,
+        direction: this.direction,
+        effect: this.effect,
+        waveIntensity: this.waveIntensity
+      });
+    },
+    complete: () => {
+      if (this.options.onZoomOutFinish) {
+        this.options.onZoomOutFinish({
+          activeIndex: this.index.active
+        });
+      }
+    }
   });
 };
-Showcase.prototype.snapToIndex = function() {
+Showcase.prototype.snapCurrentToActiveIndex = function () {
   if (this.slidesPop) {
     this.slidesPop.stop();
   }
@@ -208,15 +261,24 @@ Showcase.prototype.snapToIndex = function() {
     stiffness: 100,
     damping: 10,
     mass: 0.5
-  }).start(val => {
-    this.slides.onMove(val);
-    this.index.current = val;
+  }).start(index => {
+    // this.slides.onMove(index);
+    if (this.options.onIndexChange) {
+      this.options.onIndexChange(index);
+    }
+    this.index.current = index;
   });
 };
-Showcase.prototype.onGrabEnd = function() {
-  this.slides.disperse(this.index.active);
 
-  this.snapToIndex();
+Showcase.prototype.onGrabEnd = function () {
+  if (this.options.onFullscreenStart) {
+    this.options.onFullscreenStart({
+      activeIndex: this.index.active
+    });
+  }
+  // this.slides.disperse(this.index.active);
+
+  this.snapCurrentToActiveIndex();
 
   if (this.GLStickPop) {
     this.GLStickPop.stop();
@@ -224,29 +286,54 @@ Showcase.prototype.onGrabEnd = function() {
   const directionSpring = spring({
     from: this.direction,
     to: 1,
-    speed: 1,
     mass: 0.25,
-    stiffness: 800,
+    stiffness: 200,
     damping: 200
   });
   const progressSpring = spring({
     from: this.progress,
     to: 0,
-    stiffness: 170,
-    damping: 20
+    mass: 3,
+    stiffness: 140,
+    damping: 30
   });
   const effectSpring = spring({
     from: this.effect,
     to: 0,
     mass: 2,
-    stiffness: 500,
-    damping: 100
+    // velocity: 10,
+    stiffness: 80,
+    damping: 20,
+    restDelta: 0.001
   });
 
+  // const directionSpring = spring({
+  //   from: this.direction,
+  //   to: 0,
+  //   speed: 1,
+  //   mass: 0.25,
+  //   stiffness: 800,
+  //   damping: 200
+  // });
+  // const progressSpring = spring({
+  //   from: this.progress,
+  //   to: 1,
+  //   mass: 2,
+  //   stiffness: 170,
+  //   damping: 20
+  // });
+  // const effectSpring = spring({
+  //   from: this.effect,
+  //   to: 1,
+  //   mass: 2,
+  //   stiffness: 100,
+  //   damping: 15
+  // });
   const waveIntensitySpring = spring({
     from: this.waveIntensity,
     to: 0,
-    stiffness: 500,
+    mass: 0.1,
+    stiffness: 800,
     damping: 50
   });
 
@@ -269,12 +356,19 @@ Showcase.prototype.onGrabEnd = function() {
       });
     },
     complete: () => {
+      if (this.options.onFullscreenFinish) {
+        this.options.onFullscreenFinish({
+          activeIndex: this.index.active
+        });
+      }
       this.GL.cancelLoop();
     }
   });
 };
 
-Showcase.prototype.onResize = function() {
+Showcase.prototype.onResize = function () {
   this.GL.onResize();
 };
-export { Showcase };
+export {
+  Showcase
+};

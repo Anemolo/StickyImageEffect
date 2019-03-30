@@ -26,7 +26,6 @@ function GLManager(data) {
   this.camera = camera;
   this.scene = scene;
   this.renderer = renderer;
-  this.meshes = [];
   this.initialRender = false;
   this.time = 0;
   this.loopRaf = null;
@@ -38,6 +37,7 @@ GLManager.prototype.getViewSize = function() {
 
   return viewSize;
 };
+
 GLManager.prototype.getPlaneSize = function() {
   const viewSize = this.getViewSize();
   return { width: viewSize * 1.5, height: viewSize };
@@ -60,19 +60,14 @@ GLManager.prototype.calculateAspectRatioFactor = function(index, texture) {
 
   this.factors[index] = new THREE.Vector2(factorX, factorY);
   if (this.currentIndex === index) {
-    this.meshes[0].material.uniforms.u_textureFactor.value = this.factors[
-      index
-    ];
-    this.meshes[0].material.uniforms.u_textureFactor.needsUpdate = true;
+    this.mesh.material.uniforms.u_textureFactor.value = this.factors[index];
+    this.mesh.material.uniforms.u_textureFactor.needsUpdate = true;
   }
   if (this.nextIndex === index) {
-    this.meshes[0].material.uniforms.u_texture2Factor.value = this.factors[
-      index
-    ];
-    this.meshes[0].material.uniforms.u_texture2Factor.needsUpdate = true;
+    this.mesh.material.uniforms.u_texture2Factor.value = this.factors[index];
+    this.mesh.material.uniforms.u_texture2Factor.needsUpdate = true;
   }
   if (this.initialRender) {
-    console.log("rendering");
     this.render();
   }
 };
@@ -101,7 +96,16 @@ GLManager.prototype.createPlane = function() {
       u_direction: { type: "f", value: 0 },
       u_effect: { type: "f", value: 0 },
       u_time: { type: "f", value: this.time },
-      u_waveIntensity: { type: "f", value: 0 }
+      u_waveIntensity: { type: "f", value: 0 },
+      u_resolution: {
+        type: "v2",
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight)
+      },
+      u_rgbPosition: {
+        type: "v2",
+        value: new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2)
+      },
+      u_rgbVelocity: { type: "v2", value: new THREE.Vector2(0, 0) }
     },
     vertexShader: vertex,
     fragmentShader: fragment,
@@ -109,7 +113,7 @@ GLManager.prototype.createPlane = function() {
   });
   const mesh = new THREE.Mesh(geometry, material);
   this.scene.add(mesh);
-  this.meshes.push(mesh);
+  this.mesh = mesh;
 };
 GLManager.prototype.updateTexture = function(newIndex, progress) {
   let didChange = false;
@@ -117,23 +121,21 @@ GLManager.prototype.updateTexture = function(newIndex, progress) {
     this.currentIndex = this.nextIndex;
     this.nextIndex = newIndex;
     this.textureProgress = 0;
-    this.meshes[0].material.uniforms.u_textureProgress.value = 0;
-    this.meshes[0].material.uniforms.u_texture.value = this.textures[
+    this.mesh.material.uniforms.u_textureProgress.value = 0;
+    this.mesh.material.uniforms.u_texture.value = this.textures[
       this.currentIndex
     ];
-    this.meshes[0].material.uniforms.u_textureFactor.value = this.factors[
+    this.mesh.material.uniforms.u_textureFactor.value = this.factors[
       this.currentIndex
     ];
-    this.meshes[0].material.uniforms.u_texture2.value = this.textures[newIndex];
+    this.mesh.material.uniforms.u_texture2.value = this.textures[newIndex];
 
-    this.meshes[0].material.uniforms.u_texture2Factor.value = this.factors[
-      newIndex
-    ];
+    this.mesh.material.uniforms.u_texture2Factor.value = this.factors[newIndex];
 
     didChange = true;
   }
   if (progress != null && progress !== this.textureProgress) {
-    this.meshes[0].material.uniforms.u_textureProgress.value = progress;
+    this.mesh.material.uniforms.u_textureProgress.value = progress;
     this.textureProgress = progress;
     didChange = true;
   }
@@ -142,17 +144,32 @@ GLManager.prototype.updateTexture = function(newIndex, progress) {
     this.render();
   }
 };
-GLManager.prototype.update = function({
+GLManager.prototype.updateStickEffect = function({
   progress,
   direction,
   effect,
   waveIntensity
 }) {
-  this.meshes[0].material.uniforms.u_progress.value = progress;
-  this.meshes[0].material.uniforms.u_direction.value = direction;
-  this.meshes[0].material.uniforms.u_effect.value = effect;
-  this.meshes[0].material.uniforms.u_waveIntensity.value = waveIntensity;
+  this.mesh.material.uniforms.u_progress.value = progress;
+  this.mesh.material.uniforms.u_direction.value = direction;
+  this.mesh.material.uniforms.u_effect.value = effect;
+  this.mesh.material.uniforms.u_waveIntensity.value = waveIntensity;
   // this.render();
+};
+
+GLManager.prototype.updateRgbEffect = function({ position, velocity }) {
+  this.mesh.material.uniforms.u_rgbPosition.value = new THREE.Vector2(
+    position.x,
+    position.y
+  );
+  this.mesh.material.uniforms.u_rgbVelocity.value = new THREE.Vector2(
+    velocity.x,
+    velocity.y
+  );
+
+  if (!this.loopRaf) {
+    this.render();
+  }
 };
 // Other stuff
 GLManager.prototype.render = function() {
@@ -165,10 +182,8 @@ GLManager.prototype.mount = function(container) {
   container.appendChild(this.renderer.domElement);
 };
 GLManager.prototype.unmount = function() {
-  for (let i = 0; i < this.meshes.length; i++) {
-    this.meshes.material.dispose();
-    this.meshes.geometry.dispose();
-  }
+  this.mesh.material.dispose();
+  this.mesh.geometry.dispose();
   this.mesh = null;
   this.renderer = null;
   this.camera = null;
@@ -177,6 +192,12 @@ GLManager.prototype.unmount = function() {
 };
 GLManager.prototype.onResize = function() {
   this.renderer.setSize(window.innerWidth, window.innerHeight);
+  this.mesh.material.uniforms.u_resolution.value = new THREE.Vector2(
+    window.innerWidth,
+    window.innerHeight
+  );
+  // this.camera.aspect = window.inenrWidth / window.innerHeight;
+  // this.camera.updateProjectionMatrix();
   for (var i = 0; i < this.textures.length; i++) {
     if (this.textures[i].image) {
       this.calculateAspectRatioFactor(i, this.textures[i]);
@@ -193,7 +214,7 @@ GLManager.prototype.scheduleLoop = function() {
 GLManager.prototype.loop = function() {
   this.render();
   this.time += 0.1;
-  this.meshes[0].material.uniforms.u_time.value = this.time;
+  this.mesh.material.uniforms.u_time.value = this.time;
 
   this.loopRaf = requestAnimationFrame(this.loop);
 };

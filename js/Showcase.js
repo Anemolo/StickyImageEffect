@@ -2,6 +2,7 @@ import { GLManager } from "./GLManager";
 import { spring, parallel } from "popmotion";
 import { Grab } from "./Grab";
 import { Slides } from "./Slides";
+import { reach } from "./reach";
 // import { create } from "domain";
 
 function Showcase(data) {
@@ -22,6 +23,13 @@ function Showcase(data) {
     scrollSize: window.innerHeight / 6,
     active: 0
   };
+
+  this.follower = {
+    x: 0,
+    y: 0
+  };
+
+  this.followerSpring = null;
 
   this.slidesSpring = null;
 
@@ -45,6 +53,54 @@ Showcase.prototype.render = function() {
 function clamp(num, min, max) {
   return Math.max(min, Math.min(num, max));
 }
+
+Showcase.prototype.onMouseMove = function(ev) {
+  if (this.followerSpring) {
+    this.followerSpring.stop();
+    this.followerSpring = null;
+    // this.follower.vx = 0;
+    // this.follower.vy = 0;
+  }
+
+  this.followerSpring = reach({
+    from: { x: this.follower.x, y: this.follower.y },
+    to: { x: ev.clientX, y: ev.clientY },
+    velocity: { x: this.follower.vx, y: this.follower.vy },
+    stiffness: 500,
+    damping: 50,
+    mass: 1
+  }).start({
+    update: position => {
+      const velocity = {
+        x: position.x - this.follower.x,
+        y: position.y - this.follower.y
+      };
+      this.GL.updateRgbEffect({ position, velocity });
+      // ball.style.background = "blue";
+      // const transform = `
+      // translate(calc(-50% + ${position.x.toFixed(
+      //   2
+      // )}px),calc(-50% + ${position.y.toFixed(2)}px) )`;
+      // ball.style.transform = transform;
+      this.follower = {
+        x: position.x,
+        y: position.y,
+        vx: velocity.x,
+        vy: velocity.y
+      };
+      // console.log(this.follower)
+    },
+    complete: () => {
+      this.GL.updateRgbEffect({
+        position: this.follower,
+        velocity: { x: 0, y: 0 }
+      });
+      this.follower.vx = 0;
+      this.follower.vy = 0;
+    }
+  });
+  // this.GL.updateRgbEffect({ position, velocity });
+};
 Showcase.prototype.onGrabMove = function(scroll) {
   this.index.target = clamp(
     this.index.initial + scroll.delta / this.index.scrollSize,
@@ -116,7 +172,7 @@ Showcase.prototype.onGrabStart = function() {
     to: 1,
     mass: 2,
     stiffness: 100,
-    damping: 20
+    damping: 10
   });
 
   const waveIntensitySpring = spring({
@@ -133,7 +189,8 @@ Showcase.prototype.onGrabStart = function() {
     this.direction = values[1];
     this.effect = values[2];
     this.waveIntensity = values[3];
-    this.GL.update({
+
+    this.GL.updateStickEffect({
       progress: this.progress,
       direction: this.direction,
       effect: this.effect,
@@ -204,7 +261,7 @@ Showcase.prototype.onGrabEnd = function() {
       this.direction = values[1];
       this.effect = values[2];
       this.waveIntensity = values[3];
-      this.GL.update({
+      this.GL.updateStickEffect({
         progress: this.progress,
         direction: this.direction,
         effect: this.effect,

@@ -48,3 +48,7 @@ app.render();
 window.addEventListener("resize", function() {
   app.onResize();
 });
+
+window.addEventListener("mousemove", function(ev) {
+  app.onMouseMove(ev);
+});

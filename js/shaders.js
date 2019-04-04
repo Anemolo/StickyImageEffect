@@ -27,7 +27,7 @@ void main(){
     vec2 vel = u_rgbVelocity;
     float dist = distance(normalizedRgbPos + vel / u_resolution, vUv.xy);
 
-    float ratio = clamp(1.0 - dist * 10., 0., 1.);
+    float ratio = clamp(1.0 - dist * 5., 0., 1.);
 
 
     vec4 tex1 = vec4(1.);
@@ -35,21 +35,21 @@ void main(){
 
     vec2 uv = vUv;
 
-    uv.x -= sin(uv.y) * ratio / 100. * (vel.x + vel.y) / 10.;
-    uv.y -= sin(uv.x) * ratio / 100. * (vel.x + vel.y) / 10.;
+    uv.x -= sin(uv.y) * ratio / 100. * (vel.x + vel.y) / 7.;
+    uv.y -= sin(uv.x) * ratio / 100. * (vel.x + vel.y) / 7.;
 
     tex1.r = texture2D(u_texture, centeredAspectRatio(uv, u_textureFactor )).r;
     tex2.r = texture2D(u_texture2, centeredAspectRatio(uv, u_textureFactor )).r;
 
     
-    uv.x -= sin(uv.y) * ratio / 150. * (vel.x + vel.y) / 10.;
-    uv.y -= sin(uv.x) * ratio / 150. * (vel.x + vel.y) / 10.;
+    uv.x -= sin(uv.y) * ratio / 150. * (vel.x + vel.y) / 7.;
+    uv.y -= sin(uv.x) * ratio / 150. * (vel.x + vel.y) / 7.;
 
     tex1.g = texture2D(u_texture, centeredAspectRatio(uv, u_textureFactor )).g;
     tex2.g = texture2D(u_texture2, centeredAspectRatio(uv, u_textureFactor )).g;
     
-    uv.x -= sin(uv.y) * ratio / 300. * (vel.x + vel.y) / 10.;
-    uv.y -= sin(uv.x) * ratio / 300. * (vel.x + vel.y) / 10.;
+    uv.x -= sin(uv.y) * ratio / 300. * (vel.x + vel.y) / 7.;
+    uv.y -= sin(uv.x) * ratio / 300. * (vel.x + vel.y) / 7.;
 
     tex1.b = texture2D(u_texture, centeredAspectRatio(uv, u_textureFactor )).b;
     tex2.b = texture2D(u_texture2, centeredAspectRatio(uv, u_textureFactor )).b;
@@ -68,6 +68,8 @@ void main(){
     //     vel.y / u_resolution.x,
     //     0.,
     //     1.);
+
+    // gl_FragColor = vec4(vec3(zz),1.);
 }
 `;
 
@@ -83,59 +85,54 @@ varying vec2 vUv;
 varying float zz;
 void main(){
     vec3 pos = position.xyz;
-    float zChange = 0.;
 
-    float distance = length(position.xy );
-    float sizeDist = length(vec2((u_viewSize * 1.5) / 1.6, u_viewSize / 1.6));
-    float normalized = distance/sizeDist;
+    float distance = length(uv.xy - 0.5 );
+    float sizeDist = length(vec2(0.5,0.5));
+    float normalized = distance/sizeDist ;
 
-    float stickyness = 0.5;
+    // normalized = smoothstep(0.1,1.,normalized);
+    float stickOutEffect = normalized ;
+    float stickInEffect = -normalized ;
 
-    float inside = -1.+normalized;
-    float outside = -normalized;
-
-    float pp = 0.;
-    float dir = 1.;
-    float effect = 0.;
-
-    pp = u_progress;
-    dir = u_direction;
-    effect = u_effect;
-
-
-
-    // The mix cancel out at 0.5
-    // When effect hits 1. the effects cancel out.
-    float inMix = mix(inside,outside, clamp(effect-0.5,0.,1.) );
-    // Not sure out works because it hits 0, maning it does not calcel out
-    // 
-    // goes from 1 to 0;
-    // on 0 it should nullify
-    // This works because inside and outside are swapped
-    float outMix = mix(inside,outside,  clamp(effect+0.5,0.,1.) );
     
-    float outEffect = sin((1.-effect) * PI - PI/2.) *0.5 + 0.5;
-    float inEffect = sin(effect * PI - PI/2.) *0.5 + 0.5;
+    float stickEffect = mix(stickOutEffect,stickInEffect, u_direction);
+
+    float stick = 0.5;
+    // Backwards V wave.
+
+    float stickInInfluence = u_progress*(1. / stick); 
+
+    float stickOutInfluence =  -( u_progress - 1.) * (1./(1.-stick) );
+
+    // Not clamped so it is allowed to bounce 
+    float stickProgress = min(stickInInfluence, stickOutInfluence);
+
+    float offset = 12.;
+
+    // We can re-use stick Influcse because this oen starts at the same position
+    float offsetInProgress = clamp(stickInInfluence,0.,1.);
+
+    // here, we need to invert stickout to get the slope moving upwards to the right
+    // and move it left by 1
+    float offsetOutProgress = clamp(1.-stickOutInfluence,0.,1.);
+
+    float offsetProgress = mix(offsetInProgress,offsetOutProgress,u_direction);
 
 
-    zChange = mix(inMix,outMix, dir);
-
-
-    float eff = mix(u_progress, 1.-u_progress, dir);
-
-    pos.z += (-(sin(zChange * PI - PI/2.))) * 4. - u_progress * 8.;
+    float stickOffset = offset;
+    pos.z += stickEffect * stickOffset * stickProgress  - offset * offsetProgress;
 
     // out. eff = 0, pro = 0; dir = 1;
     // in. eff = 1, pro= 1, dir  = 0;
     
-    pos.z += sin(distance * 2. - u_time * 2.)  * u_waveIntensity;
+    pos.z += sin(distance * 10. - u_time * 2. )  * u_waveIntensity;
 
     gl_Position =   
         projectionMatrix * 
         modelViewMatrix * 
          vec4(pos, 1.0);
 
-    zz = zChange;
+    zz = normalized;
     vUv = uv;
 }
 `;

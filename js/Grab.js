@@ -34,6 +34,7 @@ class Grab {
       // if (ev.type === "touchend") {
       //   throw new Error(ev.targetTouches);
       // }
+      ev.preventDefault();
       grabListener({
         y: ev.targetTouches[0] ? ev.targetTouches[0].clientY : null
       });
@@ -44,10 +45,10 @@ class Grab {
     }
     if (Array.isArray(events)) {
       for (let i = 0; i < events.length; i++) {
-        window.addEventListener(events[i], listener);
+        window.addEventListener(events[i], listener, false);
       }
     } else {
-      window.addEventListener(events, listener);
+      window.addEventListener(events, listener, false);
     }
   }
 

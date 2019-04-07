@@ -33,7 +33,9 @@ function GLManager(data) {
 }
 GLManager.prototype.getViewSize = function() {
   const fovInRadians = (this.camera.fov * Math.PI) / 180;
-  const viewSize = Math.abs(5 * Math.tan(fovInRadians / 2) * 2);
+  const viewSize = Math.abs(
+    this.camera.position.z * Math.tan(fovInRadians / 2) * 2
+  );
 
   return viewSize;
 };
@@ -91,7 +93,7 @@ GLManager.prototype.createPlane = function() {
       u_texture2: { type: "t", value: this.textures[this.nextIndex] },
       u_texture2Factor: { type: "f", value: this.factors[this.nextIndex] },
       u_textureProgress: { type: "f", value: this.textureProgress },
-      u_viewSize: { type: "f", value: viewSize },
+      u_offset: { type: "f", value: 8 },
       u_progress: { type: "f", value: 0 },
       u_direction: { type: "f", value: 1 },
       u_effect: { type: "f", value: 0 },
@@ -147,12 +149,10 @@ GLManager.prototype.updateTexture = function(newIndex, progress) {
 GLManager.prototype.updateStickEffect = function({
   progress,
   direction,
-  effect,
   waveIntensity
 }) {
   this.mesh.material.uniforms.u_progress.value = progress;
   this.mesh.material.uniforms.u_direction.value = direction;
-  this.mesh.material.uniforms.u_effect.value = effect;
   this.mesh.material.uniforms.u_waveIntensity.value = waveIntensity;
   // this.render();
 };

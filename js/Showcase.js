@@ -17,7 +17,6 @@ function Showcase(data, options = {}) {
 
   this.progress = 0;
   this.direction = 1;
-  this.effect = 0;
   this.waveIntensity = 0;
 
   this.options = options;
@@ -82,19 +81,12 @@ Showcase.prototype.onMouseMove = function(ev) {
         y: position.y - this.follower.y
       };
       this.GL.updateRgbEffect({ position, velocity });
-      // ball.style.background = "blue";
-      // const transform = `
-      // translate(calc(-50% + ${position.x.toFixed(
-      //   2
-      // )}px),calc(-50% + ${position.y.toFixed(2)}px) )`;
-      // ball.style.transform = transform;
       this.follower = {
         x: position.x,
         y: position.y,
         vx: velocity.x,
         vy: velocity.y
       };
-      // console.log(this.follower)
     },
     complete: () => {
       this.GL.updateRgbEffect({
@@ -144,7 +136,8 @@ Showcase.prototype.onGrabMove = function(scroll) {
   }
   this.slidesPop = reach({
     from: { index: this.index.current },
-    to: { index: this.index.target }
+    to: { index: this.index.target },
+    restDelta: 0.001
   }).start({
     update: val => {
       // this.slides.onMove(index);
@@ -183,21 +176,14 @@ Showcase.prototype.onGrabStart = function() {
   const progressSpring = spring({
     from: this.progress,
     to: 1,
-    mass: 4,
-    stiffness: 200,
-    damping: 200
-  });
-  const effectSpring = spring({
-    from: this.effect,
-    to: 1,
-    mass: 1,
-    stiffness: 100,
-    damping: 20
+    mass: 5,
+    stiffness: 350,
+    damping: 500
   });
 
   const waveIntensitySpring = spring({
     from: this.waveIntensity,
-    to: 1,
+    to: 0.5,
     mass: 5,
     stiffness: 10,
     damping: 200
@@ -205,19 +191,18 @@ Showcase.prototype.onGrabStart = function() {
   this.GLStickPop = parallel(
     progressSpring,
     directionSpring,
-    effectSpring,
     waveIntensitySpring
   ).start({
     update: values => {
+      if (this.progress !== values[0]) {
+      }
       this.progress = values[0];
       this.direction = values[1];
-      this.effect = values[2];
-      this.waveIntensity = values[3];
+      this.waveIntensity = values[2];
 
       this.GL.updateStickEffect({
         progress: this.progress,
         direction: this.direction,
-        effect: this.effect,
         waveIntensity: this.waveIntensity
       });
     },
@@ -232,18 +217,19 @@ Showcase.prototype.snapCurrentToActiveIndex = function() {
   if (this.slidesPop) {
     this.slidesPop.stop();
   }
-  this.slidesPop = spring({
-    from: this.index.current,
-    to: Math.round(this.index.target),
-    stiffness: 100,
-    damping: 10,
-    mass: 0.5
-  }).start(index => {
-    // this.slides.onMove(index);
-    if (this.options.onIndexChange) {
-      this.options.onIndexChange(index);
+  this.slidesPop = reach({
+    from: { index: this.index.current },
+    to: { index: Math.round(this.index.target) },
+    restDelta: 0.001
+  }).start({
+    complete: () => {},
+    update: val => {
+      // this.slides.onMove(val);
+      if (this.options.onIndexChange) {
+        this.options.onIndexChange(val.index);
+      }
+      this.index.current = val.index;
     }
-    this.index.current = index;
   });
 };
 
@@ -269,41 +255,10 @@ Showcase.prototype.onGrabEnd = function() {
     from: this.progress,
     to: 0,
     mass: 4,
-    stiffness: 200,
-    damping: 40
+    stiffness: 400,
+    damping: 70,
+    restDelta: 0.0001
   });
-  const effectSpring = spring({
-    from: this.effect,
-    to: 0,
-    mass: 4,
-    // velocity: 10,
-    stiffness: 150,
-    damping: 35,
-    restDelta: 0.001
-  });
-
-  // const directionSpring = spring({
-  //   from: this.direction,
-  //   to: 0,
-  //   speed: 1,
-  //   mass: 0.25,
-  //   stiffness: 800,
-  //   damping: 200
-  // });
-  // const progressSpring = spring({
-  //   from: this.progress,
-  //   to: 1,
-  //   mass: 2,
-  //   stiffness: 170,
-  //   damping: 20
-  // });
-  // const effectSpring = spring({
-  //   from: this.effect,
-  //   to: 1,
-  //   mass: 2,
-  //   stiffness: 100,
-  //   damping: 15
-  // });
   const waveIntensitySpring = spring({
     from: this.waveIntensity,
     to: 0,
@@ -315,18 +270,15 @@ Showcase.prototype.onGrabEnd = function() {
   this.GLStickPop = parallel(
     progressSpring,
     directionSpring,
-    effectSpring,
     waveIntensitySpring
   ).start({
     update: values => {
       this.progress = values[0];
       this.direction = values[1];
-      this.effect = values[2];
-      this.waveIntensity = values[3];
+      this.waveIntensity = values[2];
       this.GL.updateStickEffect({
         progress: this.progress,
         direction: this.direction,
-        effect: this.effect,
         waveIntensity: this.waveIntensity
       });
     },

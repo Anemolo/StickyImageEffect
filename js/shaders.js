@@ -11,7 +11,6 @@ uniform float u_textureProgress;
 uniform vec2 u_rgbPosition;
 uniform vec2 u_rgbVelocity;
 
-varying float zz;
 varying vec2 vUv;
 vec2 centeredAspectRatio(vec2 uvs, vec2 factor){
     return uvs * factor - factor /2. + 0.5;
@@ -63,76 +62,64 @@ void main(){
     vec4 mixedTextures =  mix(tex1,tex2,u_textureProgress);
 
     gl_FragColor = mixedTextures;
-    // gl_FragColor = vec4(
-    //     normalizedRgbPos.x,
-    //     vel.y / u_resolution.x,
-    //     0.,
-    //     1.);
-
-    // gl_FragColor = vec4(vec3(zz),1.);
 }
 `;
 
 const vertex = `
 #define PI 3.14159265359
-uniform float u_viewSize;
+uniform float u_offset;
 uniform float u_progress;
 uniform float u_direction;
 uniform float u_time;
-uniform float u_effect;
 uniform float u_waveIntensity;
 varying vec2 vUv;
-varying float zz;
 void main(){
     vec3 pos = position.xyz;
 
     float distance = length(uv.xy - 0.5 );
     float sizeDist = length(vec2(0.5,0.5));
-    float normalized = distance/sizeDist ;
+    float normalizedDistance = distance/sizeDist ;
 
-    // normalized = smoothstep(0.1,1.,normalized);
-    float stickOutEffect = normalized ;
-    float stickInEffect = -normalized ;
+    float stickOutEffect = normalizedDistance ;
+    float stickInEffect = -normalizedDistance ;
 
     
     float stickEffect = mix(stickOutEffect,stickInEffect, u_direction);
 
-    float stick = 0.5;
     // Backwards V wave.
+    float stick = 0.5;
 
-    float stickInInfluence = u_progress*(1. / stick); 
+    float waveIn = u_progress*(1. / stick); 
+    float waveOut =  -( u_progress - 1.) * (1./(1.-stick) );
+    waveOut = pow(smoothstep(0.,1.,waveOut),0.7);
 
-    float stickOutInfluence =  -( u_progress - 1.) * (1./(1.-stick) );
+    float stickProgress = min(waveIn, waveOut);
 
-    // Not clamped so it is allowed to bounce 
-    float stickProgress = min(stickInInfluence, stickOutInfluence);
 
-    float offset = 12.;
+
+
 
     // We can re-use stick Influcse because this oen starts at the same position
-    float offsetInProgress = clamp(stickInInfluence,0.,1.);
+    float offsetInProgress = clamp(waveIn,0.,1.);
 
-    // here, we need to invert stickout to get the slope moving upwards to the right
+    // Invert stickout to get the slope moving upwards to the right
     // and move it left by 1
-    float offsetOutProgress = clamp(1.-stickOutInfluence,0.,1.);
+    float offsetOutProgress = clamp(1.-waveOut,0.,1.);
 
     float offsetProgress = mix(offsetInProgress,offsetOutProgress,u_direction);
 
 
-    float stickOffset = offset;
-    pos.z += stickEffect * stickOffset * stickProgress  - offset * offsetProgress;
+    float stickOffset = u_offset;
+    pos.z += stickEffect * stickOffset * stickProgress  - u_offset * offsetProgress;
 
-    // out. eff = 0, pro = 0; dir = 1;
-    // in. eff = 1, pro= 1, dir  = 0;
     
-    pos.z += sin(distance * 10. - u_time * 2. )  * u_waveIntensity;
+    pos.z += sin(distance * 8. - u_time * 2. )  * u_waveIntensity;
 
     gl_Position =   
         projectionMatrix * 
         modelViewMatrix * 
          vec4(pos, 1.0);
 
-    zz = normalized;
     vUv = uv;
 }
 `;

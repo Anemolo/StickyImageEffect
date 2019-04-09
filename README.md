@@ -15,6 +15,20 @@ A sticky image effect for a slideshow inspired by [ultanoir's project showcase s
 
 [Demo](http://tympanus.net/Development/.../)
 
+## Building
+
+Starting a local development server:
+
+```
+npm start
+```
+
+Build and bundle all the assets into /dist:
+
+```
+npm run build
+```
+
 ## Credits
 
 _third party resources_

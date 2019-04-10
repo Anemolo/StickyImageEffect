@@ -2,7 +2,7 @@
 
 A sticky image effect for a slideshow inspired by [ultanoir's project showcase slideshow](https://ultranoir.com/en/).
 
-![Image Title](link)
+![Sticky Image Effect](https://tympanus.net/codrops/wp-content/uploads/2019/04/Sticky_featured.jpg)
 
 [Article on Codrops](https://tympanus.net/codrops/2019/04/10/how-to-create-a-sticky-image-effect-with-three-js/)
 

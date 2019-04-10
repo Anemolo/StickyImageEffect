@@ -4,9 +4,10 @@
   "description": "A deconstruction of ultranoir's WebGL project showcase",
   "main": "index.js",
   "scripts": {
-    "start": "parcel ./js/parcel.html --open",
-    "build": "npm run prebuild && parcel build ./js/index.js --public-url ./dist/",
-    "prebuild": "rm -rf dist"
+    "start": "parcel ./base.html --open",
+    "build": "npm run prebuild && parcel build ./base.html --public-url ./dist/",
+    "prebuild": "rm -rf dist",
+    "postbuild": "mv ./dist/base.html ./index.html"
   },
   "repository": {
     "type": "git",

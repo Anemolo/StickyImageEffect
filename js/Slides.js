@@ -8,18 +8,20 @@ class Slides {
   constructor(data) {
     this.data = data;
     this.container = createEleWithClass("div", "slides");
-    // container.className = "slides";
-
+    this.currentIdx = 0;
     this.slides = this.data.map((entry, index) => {
       const slide = createEleWithClass("div", "slide");
       const title = createEleWithClass("h1", "slide-title");
-      if (index === 0) {
-        title.style.color = "#f9f9f9";
-      } else {
-        slide.classList.add("next");
-      }
+      const meta = createEleWithClass("p", "slide-meta");
+      const more = createEleWithClass("a", "slide-more");
+      more.href = "#";
+      slide.classList.add(index !== 0 ? "next" : "show-meta");
+      meta.innerHTML = entry.meta;
       title.innerHTML = entry.title;
+      more.innerHTML = 'Read more';
+      slide.appendChild(meta);
       slide.appendChild(title);
+      slide.appendChild(more);
       this.container.appendChild(slide);
       return slide;
     });
@@ -28,13 +30,12 @@ class Slides {
     container.appendChild(this.container);
   }
   onActiveIndexChange(activeIndex) {
+    this.currentIdx = activeIndex;
     for (let i = 0; i < this.slides.length; i++) {
       if (activeIndex === i) {
-        this.slides[i].firstChild.style.color = "#f9f9f9";
         this.slides[i].classList.remove("next");
         this.slides[i].classList.remove("prev");
       } else {
-        this.slides[i].firstChild.style.color = "transparent";
         if (activeIndex > i) {
           this.slides[i].classList.remove("next");
           this.slides[i].classList.add("prev");
@@ -51,8 +52,11 @@ class Slides {
   }
   appear() {
     this.container.classList.add("scrolling");
+    this.slides[this.currentIdx].classList.remove("show-meta");
   }
   disperse(activeIndex) {
+    //this.currentIdx = activeIndex;
+    this.slides[this.currentIdx].classList.add("show-meta");
     this.container.classList.remove("scrolling");
     for (let index = 0; index < this.data.length; index++) {
       if (index > activeIndex) {
@@ -69,4 +73,6 @@ class Slides {
   }
 }
 
-export { Slides };
+export {
+  Slides
+};

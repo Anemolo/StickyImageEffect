@@ -1,12 +1,12 @@
-# The Title
+# How to Create a Sticky Image Effect with Three.js
 
 A sticky image effect for a slideshow inspired by [ultanoir's project showcase slideshow](https://ultranoir.com/en/).
 
 ![Image Title](link)
 
-[Article on Codrops](https://tympanus.net/codrops/?p=)
+[Article on Codrops](https://tympanus.net/codrops/2019/04/10/how-to-create-a-sticky-image-effect-with-three-js/)
 
-[Demo](http://tympanus.net/Development/.../)
+[Demo](https://tympanus.net/Tutorials/StickyImageEffect/)
 
 ## Development and Building
 

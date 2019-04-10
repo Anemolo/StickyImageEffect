@@ -1,7 +1,16 @@
-import { GLManager } from "./GLManager";
-import { spring, parallel } from "popmotion";
-import { Grab } from "./Grab";
-import { reach } from "./reach";
+import {
+  GLManager
+} from "./GLManager";
+import {
+  spring,
+  parallel
+} from "popmotion";
+import {
+  Grab
+} from "./Grab";
+import {
+  reach
+} from "./reach";
 
 // onFullscreenStart
 // onFullscreenFinish
@@ -47,19 +56,20 @@ function Showcase(data, options = {}) {
   });
 }
 
-Showcase.prototype.mount = function(container) {
+Showcase.prototype.mount = function (container) {
   this.GL.mount(container);
   // this.slides.mount(container);
   // container.appendChild(this.slidesContainer);
 };
-Showcase.prototype.render = function() {
+Showcase.prototype.render = function () {
   this.GL.render();
 };
+
 function clamp(num, min, max) {
   return Math.max(min, Math.min(num, max));
 }
 
-Showcase.prototype.onMouseMove = function(ev) {
+Showcase.prototype.onMouseMove = function (ev) {
   if (this.followerSpring) {
     this.followerSpring.stop();
     this.followerSpring = null;
@@ -68,9 +78,18 @@ Showcase.prototype.onMouseMove = function(ev) {
   }
 
   this.followerSpring = reach({
-    from: { x: this.follower.x, y: this.follower.y },
-    to: { x: ev.clientX, y: ev.clientY },
-    velocity: { x: this.follower.vx, y: this.follower.vy },
+    from: {
+      x: this.follower.x,
+      y: this.follower.y
+    },
+    to: {
+      x: ev.clientX,
+      y: ev.clientY
+    },
+    velocity: {
+      x: this.follower.vx,
+      y: this.follower.vy
+    },
     stiffness: 500,
     damping: 50,
     mass: 1
@@ -80,7 +99,10 @@ Showcase.prototype.onMouseMove = function(ev) {
         x: position.x - this.follower.x,
         y: position.y - this.follower.y
       };
-      this.GL.updateRgbEffect({ position, velocity });
+      this.GL.updateRgbEffect({
+        position,
+        velocity
+      });
       this.follower = {
         x: position.x,
         y: position.y,
@@ -91,7 +113,10 @@ Showcase.prototype.onMouseMove = function(ev) {
     complete: () => {
       this.GL.updateRgbEffect({
         position: this.follower,
-        velocity: { x: 0, y: 0 }
+        velocity: {
+          x: 0,
+          y: 0
+        }
       });
       this.follower.vx = 0;
       this.follower.vy = 0;
@@ -100,7 +125,7 @@ Showcase.prototype.onMouseMove = function(ev) {
   // this.GL.updateRgbEffect({ position, velocity });
 };
 
-Showcase.prototype.onGrabMove = function(scroll) {
+Showcase.prototype.onGrabMove = function (scroll) {
   this.index.target = clamp(
     this.index.initial + scroll.delta / this.index.scrollSize,
     -this.data.length + 0.51,
@@ -135,8 +160,12 @@ Showcase.prototype.onGrabMove = function(scroll) {
     this.slidesPop.stop();
   }
   this.slidesPop = reach({
-    from: { index: this.index.current },
-    to: { index: this.index.target },
+    from: {
+      index: this.index.current
+    },
+    to: {
+      index: this.index.target
+    },
     restDelta: 0.001
   }).start({
     update: val => {
@@ -154,9 +183,11 @@ Showcase.prototype.onGrabMove = function(scroll) {
     }
   });
 };
-Showcase.prototype.onGrabStart = function() {
+Showcase.prototype.onGrabStart = function () {
   if (this.options.onZoomOutStart) {
-    this.options.onZoomOutStart({ activeIndex: this.index.active });
+    this.options.onZoomOutStart({
+      activeIndex: this.index.active
+    });
   }
   // this.slides.appear();
   this.index.initial = this.index.current;
@@ -194,8 +225,7 @@ Showcase.prototype.onGrabStart = function() {
     waveIntensitySpring
   ).start({
     update: values => {
-      if (this.progress !== values[0]) {
-      }
+      if (this.progress !== values[0]) {}
       this.progress = values[0];
       this.direction = values[1];
       this.waveIntensity = values[2];
@@ -208,18 +238,24 @@ Showcase.prototype.onGrabStart = function() {
     },
     complete: () => {
       if (this.options.onZoomOutFinish) {
-        this.options.onZoomOutFinish({ activeIndex: this.index.active });
+        this.options.onZoomOutFinish({
+          activeIndex: this.index.active
+        });
       }
     }
   });
 };
-Showcase.prototype.snapCurrentToActiveIndex = function() {
+Showcase.prototype.snapCurrentToActiveIndex = function () {
   if (this.slidesPop) {
     this.slidesPop.stop();
   }
   this.slidesPop = reach({
-    from: { index: this.index.current },
-    to: { index: Math.round(this.index.target) },
+    from: {
+      index: this.index.current
+    },
+    to: {
+      index: Math.round(this.index.target)
+    },
     restDelta: 0.001
   }).start({
     complete: () => {},
@@ -233,9 +269,11 @@ Showcase.prototype.snapCurrentToActiveIndex = function() {
   });
 };
 
-Showcase.prototype.onGrabEnd = function() {
+Showcase.prototype.onGrabEnd = function () {
   if (this.options.onFullscreenStart) {
-    this.options.onFullscreenStart({ activeIndex: this.index.active });
+    this.options.onFullscreenStart({
+      activeIndex: this.index.active
+    });
   }
   // this.slides.disperse(this.index.active);
 
@@ -284,14 +322,18 @@ Showcase.prototype.onGrabEnd = function() {
     },
     complete: () => {
       if (this.options.onFullscreenFinish) {
-        this.options.onFullscreenFinish({ activeIndex: this.index.active });
+        this.options.onFullscreenFinish({
+          activeIndex: this.index.active
+        });
       }
       this.GL.cancelLoop();
     }
   });
 };
 
-Showcase.prototype.onResize = function() {
+Showcase.prototype.onResize = function () {
   this.GL.onResize();
 };
-export { Showcase };
+export {
+  Showcase
+};

@@ -4,39 +4,41 @@ import {
 import {
   Slides
 } from "./Slides";
+import {
+  Cursor
+} from "./Cursor";
+import image1 from '../images/1.jpg';
+import image2 from '../images/2.jpg';
+import image3 from '../images/3.jpg';
+import image4 from '../images/4.jpg';
+import image5 from '../images/5.jpg';
 
-import image1 from '../images/image.jpg'
 const container = document.getElementById("app");
-
+const cursor = new Cursor(document.querySelector('.cursor'));
 const slidesData = [{
-    // https://unsplash.com/photos/2_Ip8Tfi8jM
-    // No credit required
     image: image1,
-    title: "Creativity"
+    title: "Segovia",
+    meta: "Spain / Castile and León"
   },
   {
-    // https://unsplash.com/photos/Y2G16TB2fws
-    // No credit required
-    image: "https://images.unsplash.com/photo-1519058497187-7167f17c6daf?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2048&q=100",
-    title: "Time"
+    image: image2,
+    title: "Barcelona",
+    meta: "Spain / Catalonia"
   },
   {
-    //https://unsplash.com/photos/6tx6K80_IJw
-    // No credit required
-    image: "https://images.unsplash.com/photo-1520883579495-5592ae324d5d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80",
-    title: "Home"
+    image: image3,
+    title: "Málaga",
+    meta: "Spain / Andalusia"
   },
   {
-    // https://unsplash.com/photos/05Y_dRUcMaQ
-    // No credit required
-    image: "https://images.unsplash.com/photo-1514296138597-3cbbf6ca4239?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80",
-    title: "Curiosity"
+    image: image4,
+    title: "Pamplona",
+    meta: "Spain / Navarre"
   },
   {
-    // https://unsplash.com/photos/hAb_8YM2kJw
-    // No credit required
-    image: "https://images.unsplash.com/photo-1500336866626-5a47b3158a48?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80",
-    title: "Order"
+    image: image5,
+    title: "Bilbao",
+    meta: "Spain / Biscay"
   }
 ];
 
@@ -51,6 +53,7 @@ const showcase = new Showcase(slidesData, {
   onZoomOutStart: ({
     activeIndex
   }) => {
+    cursor.enter();
     slides.appear();
   },
   onZoomOutFinish: ({
@@ -59,6 +62,7 @@ const showcase = new Showcase(slidesData, {
   onFullscreenStart: ({
     activeIndex
   }) => {
+    cursor.leave();
     slides.disperse(activeIndex);
   },
   onFullscreenFinish: ({

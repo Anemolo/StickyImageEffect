@@ -124,4 +124,7 @@ void main(){
 }
 `;
 
-export { fragment, vertex };
+export {
+    fragment,
+    vertex
+};

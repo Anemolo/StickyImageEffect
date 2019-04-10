@@ -1,4 +1,8 @@
-const reach = function({ from, to, restDelta = 0.01 }) {
+const reach = function ({
+  from,
+  to,
+  restDelta = 0.01
+}) {
   let current = Object.assign({}, from);
   let keys = Object.keys(from);
 
@@ -6,7 +10,7 @@ const reach = function({ from, to, restDelta = 0.01 }) {
     current: null
   };
 
-  let _update = function(update, complete) {
+  let _update = function (update, complete) {
     if (keys.length === 0) {
       cancelAnimationFrame(raf.current);
       raf.current = null;
@@ -34,11 +38,14 @@ const reach = function({ from, to, restDelta = 0.01 }) {
     raf.current = requestAnimationFrame(_update);
   };
   return {
-    start: function({ update, complete }) {
+    start: function ({
+      update,
+      complete
+    }) {
       _update = _update.bind(null, update, complete);
       raf.current = requestAnimationFrame(_update);
       return {
-        stop: function() {
+        stop: function () {
           cancelAnimationFrame(raf.current);
           raf.current = null;
         }
@@ -47,4 +54,6 @@ const reach = function({ from, to, restDelta = 0.01 }) {
   };
 };
 
-export { reach };
+export {
+  reach
+};

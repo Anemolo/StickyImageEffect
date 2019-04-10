@@ -25,12 +25,14 @@ class Grab {
     this.listen(["touchend", "touchcancel"], this.onMouseUp.bind(this), true);
   }
   listen(events, grabListener, isTouch) {
-    let mouseListener = function(ev) {
+    let mouseListener = function (ev) {
       if (ev.type === "mouseout" && ev.relatedTarget != null) return;
-      grabListener({ y: ev.clientY });
+      grabListener({
+        y: ev.clientY
+      });
     };
 
-    let touchListener = function(ev) {
+    let touchListener = function (ev) {
       // if (ev.type === "touchend") {
       //   throw new Error(ev.targetTouches);
       // }
@@ -95,4 +97,6 @@ class Grab {
   }
 }
 
-export { Grab };
+export {
+  Grab
+};

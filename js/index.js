@@ -1,21 +1,16 @@
-import {
-  Showcase
-} from "./Showcase";
-import {
-  Slides
-} from "./Slides";
-import {
-  Cursor
-} from "./Cursor";
-import image1 from '../images/1.jpg';
-import image2 from '../images/2.jpg';
-import image3 from '../images/3.jpg';
-import image4 from '../images/4.jpg';
-import image5 from '../images/5.jpg';
+import { Showcase } from "./Showcase";
+import { Slides } from "./Slides";
+import { Cursor } from "./Cursor";
+import image1 from "../images/1.jpg";
+import image2 from "../images/2.jpg";
+import image3 from "../images/3.jpg";
+import image4 from "../images/4.jpg";
+import image5 from "../images/5.jpg";
 
 const container = document.getElementById("app");
-const cursor = new Cursor(document.querySelector('.cursor'));
-const slidesData = [{
+const cursor = new Cursor(document.querySelector(".cursor"));
+const slidesData = [
+  {
     image: image1,
     title: "Segovia",
     meta: "Spain / Castile and León"
@@ -50,34 +45,26 @@ const showcase = new Showcase(slidesData, {
   onIndexChange: index => {
     slides.onMove(index);
   },
-  onZoomOutStart: ({
-    activeIndex
-  }) => {
+  onZoomOutStart: ({ activeIndex }) => {
     cursor.enter();
     slides.appear();
   },
-  onZoomOutFinish: ({
-    activeIndex
-  }) => {},
-  onFullscreenStart: ({
-    activeIndex
-  }) => {
+  onZoomOutFinish: ({ activeIndex }) => {},
+  onFullscreenStart: ({ activeIndex }) => {
     cursor.leave();
     slides.disperse(activeIndex);
   },
-  onFullscreenFinish: ({
-    activeIndex
-  }) => {}
+  onFullscreenFinish: ({ activeIndex }) => {}
 });
 
 showcase.mount(container);
 slides.mount(container);
 showcase.render();
 
-window.addEventListener("resize", function () {
+window.addEventListener("resize", function() {
   showcase.onResize();
 });
 
-window.addEventListener("mousemove", function (ev) {
+window.addEventListener("mousemove", function(ev) {
   showcase.onMouseMove(ev);
 });

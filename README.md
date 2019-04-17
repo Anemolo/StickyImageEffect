@@ -10,6 +10,12 @@ A sticky image effect for a slideshow inspired by [ultanoir's project showcase s
 
 ## Development and Building
 
+If you want to build the project or develop on top of it. You have to install the packages first:
+
+```
+npm install
+```
+
 Starting a local development server:
 
 ```
